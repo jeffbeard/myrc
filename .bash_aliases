@@ -76,6 +76,27 @@ alias 'sm=svn commit'
 alias 'cpan=perl -MCPAN -e shell'
 alias 'mdc=make distclean;c'
 
+alias java7="export JAVA_HOME=$(/usr/libexec/java_home -v 1.7); echo JAVA_HOME=\$JAVA_HOME;"
+alias java6="export JAVA_HOME=$(/usr/libexec/java_home -v 1.6); echo JAVA_HOME=\$JAVA_HOME;"
+                                                                                 
+## Vagrant aliases                                                               
+alias vup='vagrant up'                                                                    
+alias vap='vagrant provision'                                                             
+alias vh='vagrant halt'                                                                   
+alias vd='vagrant destroy'                                                                
+alias vsh='vagrant ssh' 
+
+## Docker aliases
+alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress 
+drm() { docker rm $(docker ps -q -a); }
+dri() { docker rmi $(docker images -q); }
+alias dkd="docker run -d -P"
+db() { docker build -t="$1" .; }
+alias dki="docker images";
+alias dkps="docker ps -a";
+alias dks="docker images; docker ps -a";
+
+
 ## Web server thingies
 alias 'webcf=sudo vim /etc/httpd/conf/httpd.conf'
 alias 'webctl=sudo /etc/init.d/httpd'
