@@ -87,7 +87,7 @@ alias vd='vagrant destroy'
 alias vsh='vagrant ssh' 
 
 ## Docker aliases
-alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress 
+alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
 drm() { docker rm $(docker ps -q -a); }
 dri() { docker rmi $(docker images -q); }
 alias dkd="docker run -d -P"
