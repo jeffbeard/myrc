@@ -76,8 +76,9 @@ alias 'sm=svn commit'
 alias 'cpan=perl -MCPAN -e shell'
 alias 'mdc=make distclean;c'
 
-alias java7="export JAVA_HOME=$(/usr/libexec/java_home -v 1.7); echo JAVA_HOME=\$JAVA_HOME;"
-alias java6="export JAVA_HOME=$(/usr/libexec/java_home -v 1.6); echo JAVA_HOME=\$JAVA_HOME;"
+## These only work on Mac OS X
+#alias java7="export JAVA_HOME=$(/usr/libexec/java_home -v 1.7); echo JAVA_HOME=\$JAVA_HOME;"
+#alias java6="export JAVA_HOME=$(/usr/libexec/java_home -v 1.6); echo JAVA_HOME=\$JAVA_HOME;"
                                                                                  
 ## Vagrant aliases                                                               
 alias vup='vagrant up'                                                                    
