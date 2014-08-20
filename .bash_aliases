@@ -55,6 +55,7 @@ alias 'mysql=mysql --auto-rehash'
 alias 'sql=mysql -u root -p'
 alias 't=tail -f'
 alias 'top=top -o cpu -s 2'
+alias 'gw=chmod +x ./gradlew;./gradlew' 
 
 ## Network thingies
 alias 'ftp=ncftp'
@@ -77,15 +78,17 @@ alias 'cpan=perl -MCPAN -e shell'
 alias 'mdc=make distclean;c'
 
 ## These only work on Mac OS X
-#alias java7="export JAVA_HOME=$(/usr/libexec/java_home -v 1.7); echo JAVA_HOME=\$JAVA_HOME;"
 #alias java6="export JAVA_HOME=$(/usr/libexec/java_home -v 1.6); echo JAVA_HOME=\$JAVA_HOME;"
-                                                                                 
+#alias java7="export JAVA_HOME=$(/usr/libexec/java_home -v 1.7); echo JAVA_HOME=\$JAVA_HOME;"
+#alias java8="export JAVA_HOME=$(/usr/libexec/java_home -v 1.8) echo JAVA_HOME=\$JAVA_HOME;"
+
 ## Vagrant aliases                                                               
 alias vup='vagrant up'                                                                    
 alias vap='vagrant provision'                                                             
 alias vh='vagrant halt'                                                                   
 alias vd='vagrant destroy'                                                                
 alias vsh='vagrant ssh' 
+alias vst='vagrant status' 
 
 ## Docker aliases
 alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
