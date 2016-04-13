@@ -74,6 +74,9 @@ alias 'sk=svn status --show-updates'
 alias 'cdh=cvs diff'
 alias 'sup=svn update'
 alias 'sm=svn commit'
+alias gs='git status'
+alias gp='git pull'
+alias gu='git push'
 alias 'cpan=perl -MCPAN -e shell'
 alias 'mdc=make distclean;c'
 
@@ -89,6 +92,13 @@ alias vh='vagrant halt'
 alias vd='vagrant destroy'                                                                
 alias vsh='vagrant ssh' 
 alias vst='vagrant status' 
+
+## Terraform aliases
+alias tf=terraform
+alias tfs='terraform show'
+alias tfp='terraform plan'
+alias tfa='terraform apply'
+alias tfd='terraform destroy'
 
 ## Docker aliases
 alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
@@ -129,11 +139,23 @@ lsgrep()
     ls | grep $1
 }
 
-## History grep
-## Usage: hg <string>
-hg()
+## History grep that builds up final command to grep for multiple
+## items in the command history.
+## Usage: hg <string> <string> <string> ...
+hg() 
 {
-    history | grep $1
+    GREP=grep
+    MYPIPE="|"
+    CMD=
+    for i in "$@"
+    do
+      if [[ -z $CMD ]]; then
+        CMD="history $MYPIPE $GREP $i"
+      else
+        CMD="$CMD $MYPIPE $GREP $i" 
+      fi
+    done 
+    eval $CMD
 }
     
 ## Usage: zap <program>
