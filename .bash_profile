@@ -1,84 +1,106 @@
 # .bash_profile
+#
+# Environment and PATH. Read by login shells (macOS Terminal, ssh login,
+# `bash -l`). Non-login interactive shells (most Linux terminal emulators)
+# read .bashrc, which pulls this file in once if it has not run yet.
+#
+# Works on macOS (Intel + Apple silicon) and Linux. Anything OS- or
+# tool-specific is guarded so a missing tool costs nothing.
+
+MYRC_OS=$(uname -s)
+export MYRC_ENV_LOADED=1
+
+# Add a directory to the front of PATH, only if it exists and is not there yet.
+pathadd() {
+    [ -d "$1" ] || return 0
+    case ":$PATH:" in
+        *":$1:"*) ;;
+        *) PATH="$1:$PATH" ;;
+    esac
+}
+
+# Bash normally skips ~/.profile when ~/.bash_profile exists. Keep it honored.
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+
+## History
 export HISTTIMEFORMAT="[%D %T] "
 export HISTSIZE=20000
-
-export CATALINA_HOME=/usr/local/tomcat
-
-export ANT_HOME=/usr/local/ant
-export ANT_ARGS='-logger org.apache.tools.ant.listener.AnsiColorLogger'
-
-## Poopy Mac JVM path
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/1.6.0_41-b02-445.jdk/Contents/Home"
-export MAVEN_HOME=/usr/local/maven
-export GRADLE_HOME=/usr/local/gradle
-export MYSQL_HOME=/usr/local/mysql
+export HISTFILESIZE=40000
+export HISTCONTROL=ignoredups
+export HISTIGNORE="ls:ls *:l:lt:cat *:*AWS*:*SECRET*:*KEY*:*TOKEN*"
 
 export EDITOR=vi
 
-## Some frameworks I play around with
-export GRAILS_HOME=/usr/local/grails
-export PLAY_HOME=/usr/local/play
-export ROO_HOME=/usr/local/roo
-
-export CLICOLOR=TRUE
-export LSCOLORS=exfxbxdxcxegedabagacad
-export LESSOPEN="|lesspipe.sh %s";
-
-#export LESS_ADVANCED_PREPROCESSOR
-
-## AWS related variables
-export JETS3T_HOME=/usr/local/jets3t
-export AWS_SNS_HOME=/usr/local/AWS/SNS
-export EC2_HOME=/usr/local/AWS/EC2
-
-## MongoDB
-export MONGODB_HOME=/usr/local/mongodb
-
-## Hadoop stuff
-export HADOOP_HOME="/usr/local/hadoop"
-export HIVE_HOME="/usr/local/hive"
-export HIVE_PORT=10000
-
-## Path
-PATH=$JAVA_HOME/bin:$ANT_HOME/bin:$MYSQL_HOME/bin:$MAVEN_HOME/bin:$JETS3T_HOME/bin:$EC2_HOME/bin:$MONGODB_HOME/bin:$GRADLE_HOME/bin:$HOME/bin:$HADOOP_HOME/bin:$HIVE_HOME/bin:$GRAILS_HOME/bin:$PLAY_HOME:$ROO_HOME/bin
-
-PATH=$PATH:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/X11R6/bin:/usr/local/go/bin:/Applications/Xcode.app/Contents/Developer/usr/bin/:/usr/local/sbt/bin
-
-export PATH
-
-## AWS CLI API tools credentials
-export EC2_PRIVATE_KEY=~/.aws/aws-server.key
-export EC2_CERT=~/.aws/aws-server.crt
-
-# Get the aliases and functions
-if [ -f ~/.bashrc ]; then
-   . ~/.bashrc
+## Homebrew (macOS). Sets PATH, MANPATH, HOMEBREW_* for either prefix.
+if [ "$MYRC_OS" = Darwin ]; then
+    if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv bash)"
+    elif [ -x /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv bash)"
+    fi
 fi
 
-if [ -f ~/.bash_aliases ]; then
-   . ~/.bash_aliases
+## Java. Prefer the OS-provided locator, then a Homebrew openjdk, then javac.
+if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home >/dev/null 2>&1; then
+    export JAVA_HOME=$(/usr/libexec/java_home)
+elif [ -n "$HOMEBREW_PREFIX" ] && ls -d "$HOMEBREW_PREFIX"/opt/openjdk*/libexec/openjdk.jdk/Contents/Home >/dev/null 2>&1; then
+    export JAVA_HOME=$(ls -d "$HOMEBREW_PREFIX"/opt/openjdk*/libexec/openjdk.jdk/Contents/Home | sort -V | tail -1)
+elif command -v javac >/dev/null 2>&1; then
+    export JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")
+fi
+[ -n "$JAVA_HOME" ] && pathadd "$JAVA_HOME/bin"
+
+## JVM build tools. Only exported if installed at the conventional spot.
+for _tool in tomcat:CATALINA_HOME ant:ANT_HOME maven:MAVEN_HOME gradle:GRADLE_HOME mysql:MYSQL_HOME; do
+    _dir=/usr/local/${_tool%%:*}
+    if [ -d "$_dir" ]; then
+        export "${_tool##*:}=$_dir"
+        pathadd "$_dir/bin"
+    fi
+done
+unset _tool _dir
+export ANT_ARGS='-logger org.apache.tools.ant.listener.AnsiColorLogger'
+
+## Go. GOROOT is set by the go binary itself; only GOPATH/bin needs PATH.
+export GOPATH=$HOME/go
+pathadd /usr/local/go/bin
+pathadd "$GOPATH/bin"
+
+## Rust
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+## uv / pipx style user tools
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+pathadd "$HOME/.local/bin"
+
+## Personal bin
+pathadd "$HOME/bin"
+
+# Drop duplicate PATH entries (path_helper, brew shellenv and inherited PATH overlap)
+PATH=$(printf '%s' "$PATH" | awk -v RS=: -v ORS=: '!seen[$0]++' | sed 's/:$//')
+export PATH
+
+## less: pipe archives, PDFs, etc. through a filter when one is installed.
+if command -v lesspipe.sh >/dev/null 2>&1; then
+    export LESSOPEN="|lesspipe.sh %s"          # Fedora/RHEL, Homebrew
+elif command -v lesspipe >/dev/null 2>&1; then
+    eval "$(SHELL=/bin/sh lesspipe)"           # Debian/Ubuntu
+fi
+
+## ls colors
+if [ "$MYRC_OS" = Darwin ]; then
+    export CLICOLOR=TRUE
+    export LSCOLORS=exfxbxdxcxegedabagacad
+elif command -v dircolors >/dev/null 2>&1; then
+    eval "$(dircolors -b)"
 fi
 
 unset USERNAME
 
-# This make files 664 and dirs 775 
-umask 0002 
+# Files 664, directories 775
+umask 0002
 
-## RVM allows control of multiple ruby version
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-
-## Bash completion support for ssh. Very handy
-export COMP_WORDBREAKS=${COMP_WORDBREAKS/\:/}
-
-_sshcomplete() {
-    
-    # parse all defined hosts from .ssh/config
-    if [ -r $HOME/.ssh/config ]; then
-        COMPREPLY=($(compgen -W "$(grep ^Host $HOME/.ssh/config | awk '{print $2}' )" -- ${COMP_WORDS[COMP_CWORD]}))
-    fi
-
-    return 0
-}
-
-complete -o default -o nospace -F _sshcomplete ssh
-
+# Interactive setup (aliases, completion) lives in .bashrc
+if [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi
