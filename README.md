@@ -1,6 +1,10 @@
-Stowing some of my bash rc files here so I can snag them from 
+Stowing some of my bash rc files here so I can snag them from
 any host and also for sharing.
 
-These files we taken from my MBP so might need mods for Linux. Also some or all 
-of the aliases work fine with Cygwin.
+Files work on macOS (Intel and Apple silicon) and Linux. OS differences
+are branched on `uname`, and optional tools (Homebrew, gawk, nvm, ...) are
+only wired up when present.
 
+- `.bash_profile` — environment and PATH. Login shells.
+- `.bashrc` — interactive setup; pulls in `.bash_profile` once for non-login shells.
+- `.bash_aliases` — aliases and functions.
